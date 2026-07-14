@@ -1,0 +1,10 @@
+Node1 is a node.
+Node2 is a node.
+Node3 is a node.
+Node1 is connected-to Node2.
+Node2 is connected-to Node3.
+Node1 is connected-to Node3.
+Every node is red or is green or is blue.
+It is false that a node X is connected-to a node Y and X is red and Y is red.
+It is false that a node X is connected-to a node Y and X is green and Y is green.
+It is false that a node X is connected-to a node Y and X is blue and Y is blue.

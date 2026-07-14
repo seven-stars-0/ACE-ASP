@@ -1,0 +1,16 @@
+digraph CONTEXT {
+  rankdir=BT; splines=polyline; nodesep=0.5; ranksep=0.55;
+  node [shape=record, fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  CTX [label="{TranslationContext|+ registry: ConceptRegistry\l+ vars: VarManager\l+ skolems: Dict\<String, Const\>\l+ program: List\<StatementIR\>\l+ query: QueryIR\l|+ new_sentence(): Void\l+ add(stmt): Void\l+ set_query(q): Void\l+ fresh_skolem(): Const\l+ bind_skolem(name): Const\l+ resolve_variable(name): Term\l}"];
+  Registry [label="{ConceptRegistry|- _concepts: Dict\<String, ConceptDecl\>\l- _verb_alias: Dict\<String, String\>\l|+ declare(surface, arity, kind): String\l- _canonical_verb(name): String\l}"];
+  Decl [label="{ConceptDecl|+ name: String\l+ arity: Int\l+ kind: ConceptKind\l}"];
+  VarMan [label="{VarManager|- _counter: Int\l+ user_vars: Set\<String\>\l|+ fresh(): Var\l+ register_user(name): Var\l+ reset(): Void\l}"];
+  Kind [label="{\<\<enum\>\>\nConceptKind|NOUN\lVERB\lADJECTIVE\lFUNCTION\l}"];
+
+  Registry -> CTX [dir=back, arrowtail=diamond];
+  VarMan -> CTX [dir=back, arrowtail=diamond];
+  Decl -> Registry [dir=back, arrowtail=diamond];
+  Decl -> Kind [arrowhead=vee, style=dotted];
+}

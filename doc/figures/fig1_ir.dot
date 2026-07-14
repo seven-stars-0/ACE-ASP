@@ -1,0 +1,27 @@
+digraph IR {
+  rankdir=BT; splines=polyline; nodesep=0.45; ranksep=0.5;
+  node [shape=record, fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  BodyElem [label="{\<\<union\>\>\nBodyElem}", style=dashed];
+  Literal [label="{Literal|+ pred: String\l+ args: Tuple\<Term\>\l+ polarity: Polarity\l|+ render(): String\l+ vars(): Set\<String\>\l+ substituted(map): Literal\l+ with_polarity(p): Literal\l}"];
+  Builtin [label="{Builtin|+ op: String\l+ left: Term\l+ right: Term\l|+ render(): String\l+ vars(): Set\<String\>\l}"];
+  Agg [label="{CountAggregate|+ terms: Tuple\<Term\>\l+ condition: Tuple\<Literal\>\l+ cmp: String\l+ guard: Term\l+ result: Var\l|+ render(): String\l}"];
+  Polarity [label="{\<\<enum\>\>\nPolarity|POS\lSNEG\lNAF\lNAF_SNEG\l}"];
+
+  StatementIR [label="{\<\<union\>\>\nStatementIR}", style=dashed];
+  RuleIR [label="{RuleIR|+ head: List\<Literal\>\l+ body: List\<BodyElem\>\l|+ render(): String\l}"];
+  ChoiceIR [label="{ChoiceIR|+ element: Literal\l+ condition: List\<Literal\>\l+ body: List\<BodyElem\>\l+ lower, upper: Int\l|+ render(): String\l}"];
+  WeakIR [label="{WeakIR|+ body: List\<BodyElem\>\l+ weight, level: Int\l+ terms: Tuple\<Term\>\l|+ render(): String\l}"];
+  QueryIR [label="{QueryIR|+ rules: List\<RuleIR\>\l+ arity: Int\l|+ render(): String\l}"];
+
+  Literal -> BodyElem [style=dashed, arrowhead=empty];
+  Builtin -> BodyElem [style=dashed, arrowhead=empty];
+  Agg -> BodyElem [style=dashed, arrowhead=empty];
+  RuleIR -> StatementIR [style=dashed, arrowhead=empty];
+  ChoiceIR -> StatementIR [style=dashed, arrowhead=empty];
+  WeakIR -> StatementIR [style=dashed, arrowhead=empty];
+  QueryIR -> StatementIR [style=dashed, arrowhead=empty];
+  QueryIR -> RuleIR [arrowhead=diamond, label=" rules"];
+  Literal -> Polarity [arrowhead=vee, style=dotted];
+}

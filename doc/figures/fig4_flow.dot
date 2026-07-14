@@ -1,0 +1,26 @@
+digraph FLOW {
+  rankdir=LR; splines=polyline; nodesep=0.35; ranksep=0.45;
+  node [shape=box, fontname="Helvetica", fontsize=10, height=0.55];
+  edge [fontname="Helvetica", fontsize=9];
+
+  tok [label="lexical leaves\n(WORD, PROPER_NAME,\nVARIABLE, INT)"];
+  np [label="noun_phrase*\nNPResult"];
+  vp [label="verb_phrase*\nVPResult / OrVP"];
+  body [label="body chain\nDNF"];
+  head [label="sentence_head\ndisjuncts of Literal"];
+  buildn [label="sentence nodes\nbuild.add_*", style=bold];
+  safety [label="safety.check"];
+  ctx [label="CTX.program"];
+  start [label="start\nrender_program"];
+  out [label="ASP program", shape=note];
+
+  tok -> np; tok -> vp;
+  np -> vp [label=" objects"];
+  np -> body; vp -> body;
+  np -> head; vp -> head;
+  body -> buildn; head -> buildn;
+  np -> buildn; vp -> buildn;
+  buildn -> safety -> ctx -> start -> out;
+  {rank=same; np; vp}
+  {rank=same; body; head}
+}

@@ -1,0 +1,237 @@
+start:
+  syntax: (declarative_sentence ".")* (interrogative_sentence "?")?
+  target: [asp]
+
+declarative_sentence:
+  - name: simple_sentence
+    syntax: noun_phrase verb_phrase
+  - name: there_is_sentence
+    syntax: '"There is" indefinite_np'
+  - name: conditional_sentence
+    syntax: '"If" sentence_body "then" sentence_head'
+  - name: sentence_negation
+    syntax: '"It is false that" negated_sentence_body'
+  - name: impossibility_sentence
+    syntax: '"It is not possible that" negated_sentence_body'
+
+sentence_body:
+  syntax: body_and_group
+  concat: '", or"'
+
+body_and_group:
+  syntax: body_or_group
+  concat: '", and"'
+
+body_or_group:
+  syntax: body_conjunction
+  concat: '"or"'
+
+body_conjunction:
+  syntax: body_literal
+  concat: '"and"'
+
+body_literal:
+  syntax:
+    - simple_clause
+    - boolean_formula
+
+simple_clause:
+  syntax: noun_phrase verb_phrase
+
+negated_sentence_body:
+  syntax: sentence_body
+  concat: '"and that"'
+
+sentence_head:
+  syntax: head_clause
+  concat: '"or"'
+
+head_clause:
+  syntax: noun_phrase verb_phrase
+
+noun_phrase:
+  - name: proper_name_np
+    syntax: PROPER_NAME
+  - name: variable_np
+    syntax: VARIABLE
+  - name: indefinite_np
+    syntax: indefinite_determiner adjective_conjunction? common_noun VARIABLE? relative_clause?
+  - name: universal_np
+    syntax: universal_determiner adjective_conjunction? common_noun VARIABLE? relative_clause?
+  - name: no_np
+    syntax: no_determiner adjective_conjunction? common_noun VARIABLE? relative_clause?
+  - name: gq_np
+    syntax: generalised_quantifier common_noun VARIABLE? relative_clause?
+  - name: functional_genitive_np
+    syntax: ("the" | "The") common_noun "of" genitive_argument
+
+genitive_argument:
+  syntax:
+    - PROPER_NAME
+    - VARIABLE
+    - indefinite_np
+
+indefinite_determiner:
+  syntax: INDEF_DET
+
+universal_determiner:
+  syntax: UNIV_DET
+
+no_determiner:
+  syntax: NO_DET
+
+generalised_quantifier:
+  syntax: gq_word INT
+
+gq_word:
+  syntax: GQ_WORD
+
+adjective_conjunction:
+  syntax: adjective
+  concat: '"and"'
+
+adjective:
+  syntax: WORD
+
+relative_clause:
+  syntax: relative_clause_atom
+  concat: '"and"'
+
+relative_clause_atom:
+  syntax: relative_pronoun verb_phrase
+
+relative_pronoun:
+  syntax: REL_PRON
+
+verb_phrase:
+  syntax: vp_conjunction
+  concat: '"or"'
+
+vp_conjunction:
+  syntax: vp_simple
+  concat: '"and"'
+
+vp_simple:
+  - name: modal_vp
+    syntax: modal_word negation_marker? vp_infinitive
+  - name: vp_naf
+    syntax: '"does not provably" vp_infinitive'
+  - name: vp_negation
+    syntax: '"does not" vp_infinitive'
+  - name: copula_naf
+    syntax: '"is not provably" copula_complement'
+  - name: copula_negation
+    syntax: '"is not" copula_complement'
+  - name: copula_vp
+    syntax: '"is" copula_complement'
+  - name: verb_vp
+    syntax: verb_complements
+
+modal_word:
+  syntax: MODAL_WORD
+
+negation_marker:
+  syntax: '"not"'
+
+vp_infinitive:
+  - name: inf_verb_complements
+    syntax: verb_complements
+  - name: inf_copula
+    syntax: '"be" copula_complement'
+
+verb_complements:
+  - name: ditransitive_verb_phrase
+    syntax: verb noun_phrase "to" noun_phrase
+  - name: transitive_verb_phrase
+    syntax: verb noun_phrase
+  - name: intransitive_verb_phrase
+    syntax: verb
+
+verb:
+  syntax: WORD
+
+common_noun:
+  syntax: WORD
+
+copula_complement:
+  - name: predicative_np
+    syntax: noun_phrase
+  - name: transitive_adjective_complement
+    syntax: adjective noun_phrase
+  - name: adjective_complement
+    syntax: adjective_conjunction
+  - name: predicative_expression
+    syntax: ground_expression
+
+operation:
+  - name: boolean_formula
+    operators:
+      "=": "="
+      "\\=": "!="
+      ">": ">"
+      ">=": ">="
+      "<": "<"
+      "=<": "<="
+    syntax: expression boolean_formula_operator expression
+    target: [asp]
+  - name: arithmetic_expression
+    operators:
+      "+": "+"
+      "-": "-"
+      "*": "*"
+      "/": "/"
+    syntax: expression_atom arithmetic_expression_operator expression_atom
+    target: [asp]
+
+expression:
+  syntax:
+    - arithmetic_expression
+    - expression_atom
+
+ground_expression:
+  syntax:
+    - arithmetic_expression
+    - INT
+
+expression_atom:
+  syntax:
+    - INT
+    - VARIABLE
+    - PROPER_NAME
+
+interrogative_sentence:
+  - name: yes_no_query
+    syntax:
+      - '"Does" noun_phrase negation_marker? vp_infinitive'
+      - '"Is" noun_phrase negation_marker? copula_complement'
+  - name: which_query
+    syntax: '"Which" common_noun VARIABLE? verb_phrase'
+  - name: how_many_query
+    syntax: '"How many" common_noun VARIABLE? verb_phrase'
+
+WORD:
+  syntax: /(?!(?:a|an|one|the|is|be|does|not|provably|can|may|must|should|no|every|each|that|who|which|to|of|if|then|there|it|false|possible|and|or|at|least|most|more|less|than|exactly)(?![a-z0-9_-]))[a-z][a-z0-9_]*(-[a-z0-9_]+)*/
+
+PROPER_NAME:
+  syntax: /(?!(?:A|An|One|The|Is|No|Every|Each|If|It|There|Does|Which|How)(?![a-zA-Z0-9_-]))[A-Z][a-z][a-zA-Z0-9_]*(-[A-Z][a-z][a-zA-Z0-9_]*)*/
+
+VARIABLE:
+  syntax: /[A-Z][0-9]*/
+
+INDEF_DET:
+  syntax: /(a|an|one|1|A|An|One)(?![a-zA-Z0-9_-])/
+
+UNIV_DET:
+  syntax: /(every|each|Every|Each)(?![a-zA-Z0-9_-])/
+
+NO_DET:
+  syntax: /(no|No)(?![a-zA-Z0-9_-])/
+
+MODAL_WORD:
+  syntax: /(can|may|must|should)(?![a-zA-Z0-9_-])/
+
+GQ_WORD:
+  syntax: /(at least|at most|more than|less than|exactly)(?![a-zA-Z0-9_-])/
+
+REL_PRON:
+  syntax: /(that|who|which)(?![a-zA-Z0-9_-])/

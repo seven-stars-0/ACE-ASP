@@ -1,0 +1,21 @@
+digraph RESULTS {
+  rankdir=BT; splines=polyline; nodesep=0.5; ranksep=0.55;
+  node [shape=record, fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+
+  NPResult [label="{NPResult|+ term: Term\l+ restrictors: List\<BodyElem\>\l+ quant: Quant\l+ head_noun: String\l|+ is_ground(): Bool\l}"];
+  Quant [label="{Quant|+ kind: QuantKind\l+ gq_word: String\l+ gq_n: Int\l}"];
+  QuantKind [label="{\<\<enum\>\>\nQuantKind|CONST\lEXIST\lUNIV\lNONE\lGQ\l}"];
+  Predication [label="{Predication|+ literal: Literal  (SUBJ placeholder)\l+ obj_nps: List\<NPResult\>\l|+ substituted(map): Predication\l}"];
+  VPResult [label="{VPResult|+ preds: List\<Predication\>\l+ builtins: List\<Builtin\>\l+ modality: Modality\l+ modal_negated: Bool\l|+ apply(subject): (elems, gq_preds)\l+ with_polarity(p): VPResult\l+ merged(other): VPResult\l}"];
+  Modality [label="{\<\<enum\>\>\nModality|CAN\lMUST\lSHOULD\l}"];
+  OrVP [label="{OrVP|(disjunction of VPResult)\l}"];
+  PyList [label="{list\<VPResult\>}", style=dashed];
+
+  NPResult -> Quant [arrowhead=diamond];
+  Quant -> QuantKind [arrowhead=vee, style=dotted];
+  VPResult -> Predication [arrowhead=diamond, label=" preds"];
+  Predication -> NPResult [arrowhead=odiamond, label=" obj_nps"];
+  VPResult -> Modality [arrowhead=vee, style=dotted];
+  OrVP -> PyList [arrowhead=empty];
+}
