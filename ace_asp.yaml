@@ -1,19 +1,27 @@
+# E' possibile formulare UNA interrogative_sentence
 start:
   syntax: (declarative_sentence ".")* (interrogative_sentence "?")?
   target: [asp]
 
 declarative_sentence:
+  # A causa del grande numero di produzioni associate a noun_phrase, questa regola ha diverse
+  # interpretazioni semantiche in base a che tipo di NP 
   - name: simple_sentence
     syntax: noun_phrase verb_phrase
   - name: there_is_sentence
     syntax: '"There is" indefinite_np'
   - name: conditional_sentence
     syntax: '"If" sentence_body "then" sentence_head'
+  # Queste due sono identiche semanticamente, entrambe usate per vincoli
   - name: sentence_negation
     syntax: '"It is false that" negated_sentence_body'
   - name: impossibility_sentence
     syntax: '"It is not possible that" negated_sentence_body'
 
+# Stratificazione AND/OR per le conditional_sentence, sentence_negatione e impossibility_sentence
+# Serve per disambiguare espressioni come "A and B or C", sfruttando l'utilizzo della virgola
+# per permettere all'utente di specificare l'interpretazione corretta, e al parser di interpretarla
+# come voleva l'utente 
 sentence_body:
   syntax: body_and_group
   concat: '", or"'
@@ -33,15 +41,18 @@ body_conjunction:
 body_literal:
   syntax:
     - simple_clause
-    - boolean_formula
+    - boolean_formula # Questa viene molto dopo, usata per comparazioni con =, <, >, ecc. 
 
 simple_clause:
   syntax: noun_phrase verb_phrase
+
+# --------
 
 negated_sentence_body:
   syntax: sentence_body
   concat: '"and that"'
 
+# Questa ammette solo concatenazione con "or", per creare regole disgiuntive
 sentence_head:
   syntax: head_clause
   concat: '"or"'
@@ -52,16 +63,23 @@ head_clause:
 noun_phrase:
   - name: proper_name_np
     syntax: PROPER_NAME
+  # Per essere accettata, la variabile deve essere stata introdotta precedentemente da una there_is_sentence
   - name: variable_np
     syntax: VARIABLE
+  # Queste regole condividono la struttura: determinante [aggettivi] nome-comune [VARIABILE] [relativa]
+  # Il determinante, come dice il nome, determina il tipo di frase usata e il relativo quantificatore
+  # (esistenziale, universale, negazione)
   - name: indefinite_np
     syntax: indefinite_determiner adjective_conjunction? common_noun VARIABLE? relative_clause?
   - name: universal_np
     syntax: universal_determiner adjective_conjunction? common_noun VARIABLE? relative_clause?
   - name: no_np
     syntax: no_determiner adjective_conjunction? common_noun VARIABLE? relative_clause?
+  # ------
   - name: gq_np
     syntax: generalised_quantifier common_noun VARIABLE? relative_clause?
+  # Sarebbero le OfRelation di BioQueryCNL. Equivalgono a una funzione applicata a un argomento
+  # "The age of Malachy"
   - name: functional_genitive_np
     syntax: ("the" | "The") common_noun "of" genitive_argument
 
@@ -93,6 +111,7 @@ adjective_conjunction:
 adjective:
   syntax: WORD
 
+# "... that owns a card", "... which is a customer" e robe così
 relative_clause:
   syntax: relative_clause_atom
   concat: '"and"'
@@ -102,7 +121,9 @@ relative_clause_atom:
 
 relative_pronoun:
   syntax: REL_PRON
+# ------
 
+# Di nuovo, stratificazione di AND/OR
 verb_phrase:
   syntax: vp_conjunction
   concat: '"or"'
@@ -111,17 +132,23 @@ vp_conjunction:
   syntax: vp_simple
   concat: '"and"'
 
+# NOTA: l'ordine delle regole non è casuale, serve per il maximal munch 
 vp_simple:
+  # Vincoli forti e deboli
   - name: modal_vp
     syntax: modal_word negation_marker? vp_infinitive
+  # Negazione per fallimento
   - name: vp_naf
     syntax: '"does not provably" vp_infinitive'
+  # Negazione forte
   - name: vp_negation
     syntax: '"does not" vp_infinitive'
+  # Equivalenti alle precendenti ma con la copula
   - name: copula_naf
     syntax: '"is not provably" copula_complement'
   - name: copula_negation
     syntax: '"is not" copula_complement'
+  # ------
   - name: copula_vp
     syntax: '"is" copula_complement'
   - name: verb_vp
@@ -139,11 +166,15 @@ vp_infinitive:
   - name: inf_copula
     syntax: '"be" copula_complement'
 
+# NOTA: ordine delle regole è importante!
 verb_complements:
+  # "gives a card to Mary", produce predicato ternario
   - name: ditransitive_verb_phrase
     syntax: verb noun_phrase "to" noun_phrase
+  # "owns a dog", produce predicato binario
   - name: transitive_verb_phrase
     syntax: verb noun_phrase
+  # "waits", produce predicato unario
   - name: intransitive_verb_phrase
     syntax: verb
 
@@ -154,12 +185,16 @@ common_noun:
   syntax: WORD
 
 copula_complement:
+  # "... is a customer"
   - name: predicative_np
     syntax: noun_phrase
+  # "... is a rich customer"
   - name: transitive_adjective_complement
     syntax: adjective noun_phrase
+  # "... is handsome and smart"
   - name: adjective_complement
     syntax: adjective_conjunction
+  # Numero o espressione aritmetica, "The age of Malachy is 22"
   - name: predicative_expression
     syntax: ground_expression
 
@@ -199,15 +234,28 @@ expression_atom:
     - VARIABLE
     - PROPER_NAME
 
+# --- QUERY ---
+
 interrogative_sentence:
+  # "Does John wait?" "Is the age of Malachy 22?". Produce un atomo ans, vero o falso
   - name: yes_no_query
     syntax:
       - '"Does" noun_phrase negation_marker? vp_infinitive'
       - '"Is" noun_phrase negation_marker? copula_complement'
+  # "Which man is happy?" produce predicato ans(X), dove X sono gli uomini felici
   - name: which_query
     syntax: '"Which" common_noun VARIABLE? verb_phrase'
+  # "How many woman waits?" produce predicato ans(N), dove N è il conteggio delle donne che attendono
   - name: how_many_query
     syntax: '"How many" common_noun VARIABLE? verb_phrase'
+
+# NOTA: alcune query possono sembrare strane, ma ACE-ASP è progettato per non ammettere il plurale, per questo
+# non scriviamo "Which men are happy?" oppure "How many men wait?"
+# ------
+
+# SIMBOLI TERMINALI
+# Qui uso i lookahead negativi per evitare che keyword specifiche vengano interpretate come WORD o PROPER_NAME
+# Utilizzo anche i terminatori di frase "(?![a-zA-Z0-9_-])" per essere sicuro che la keyword sia ESATTAMENTE quella
 
 WORD:
   syntax: /(?!(?:a|an|one|the|is|be|does|not|provably|can|may|must|should|no|every|each|that|who|which|to|of|if|then|there|it|false|possible|and|or|at|least|most|more|less|than|exactly)(?![a-z0-9_-]))[a-z][a-z0-9_]*(-[a-z0-9_]+)*/
