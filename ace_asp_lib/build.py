@@ -322,7 +322,7 @@ def add_simple_sentence(np: NPResult, vp):
             for pr in vp.preds:
                 for obj in pr.obj_nps:
                     if obj.quant.kind == QuantKind.EXIST and obj.restrictors:
-                        raise UnsupportedInContext("'Every X <verbo> a Y' introduce un esistenziale in testa: usa 'can' (choice) o riformula", CTX.current_sentence)
+                        raise UnsupportedInContext("'Every X <verbo> a Y' introduce un esistenziale in testa: usa 'can + must' o riformula", CTX.current_sentence)
             # Per ogni letterale, creiamo una regola
             for h in head_lits:
                 r = RuleIR(head=[h], body=list(np.restrictors))
